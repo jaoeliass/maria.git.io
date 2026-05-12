@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coleta</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;color:#1f2937}
+    .card{width:min(100%,520px);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:24px}
+    h1{margin:0 0 8px;font-size:28px}
+    p{margin:0 0 20px;color:#6b7280}
+    label{display:block;font-weight:700;margin:14px 0 6px}
+    input{width:100%;box-sizing:border-box;padding:14px 16px;border:1px solid #d1d5db;border-radius:10px;font-size:16px}
+    input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+    button{border:0;border-radius:10px;padding:14px 18px;font-weight:700;cursor:pointer;font-size:16px}
+    .primary{background:#2563eb;color:#fff}
+    .secondary{background:#e5e7eb;color:#111827}
+    .status{margin-top:16px;padding:12px 14px;border-radius:10px;background:#eff6ff;color:#1d4ed8;display:none}
+    .status.show{display:block}
+    .hint{font-size:13px;color:#6b7280;margin-top:8px;line-height:1.4}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Cadastro simples</h1>
+    <p>Envia nome, CPF e telefone.</p>
+
+    <form id="sheetdb-form" action="https://sheetdb.io/api/v1/zww4ixqybjvmq" method="post">
+      <label for="nome">Nome</label>
+      <input id="nome" name="data[Nome]" type="text" autocomplete="name" placeholder="Digite o nome completo" required />
+
+      <label for="cpf">CPF</label>
+      <input id="cpf" name="data[CPF]" type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required />
+
+      <label for="telefone">Telefone</label>
+      <input id="telefone" name="data[Telefone]" type="tel" inputmode="tel" placeholder="(00) 00000-0000" required />
+
+      <div class="row">
+        <button class="primary" type="submit">Enviar para planilha</button>
+        <button class="secondary" type="reset">Limpar</button>
+      </div>
+    </form>
+
+    <div id="status" class="status"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('sheetdb-form');
+    const status = document.getElementById('status');
+    const cpf = document.getElementById('cpf');
+    const tel = document.getElementById('telefone');
+
+    cpf.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = v;
+    });
+
+    tel.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 10) {
+        v = v.replace(/(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{5})(\d)/, '$1-$2');
+      } else {
+        v = v.replace(/(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
+      }
+      e.target.value = v;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.classList.remove('show');
+      status.textContent = 'Enviando...';
+      status.classList.add('show');
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form)
+        });
+        if (!response.ok) throw new Error('Falha no envio');
+        status.textContent = 'Dados enviados com sucesso';
+        form.reset();
+      } catch (err) {
+        status.textContent = 'Não foi possível enviar. Tente novamente';
+      }
+    });
+  </script>
+</body>
+</html>
